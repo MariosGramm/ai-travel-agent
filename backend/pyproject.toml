@@ -1,0 +1,100 @@
+[project]
+name = "app"
+version = "0.1.0"
+requires-python = ">=3.10"
+
+dependencies = [
+  "fastapi[standard]<1.0.0,>=0.114.2",
+  "alembic<2.0.0,>=1.12.1",
+  "httpx>=0.25.1,<1.0.0",
+  "jinja2<4.0.0,>=3.1.4",
+  "psycopg[binary]<4.0.0,>=3.1.13",
+  "pydantic>2.0",
+  "pydantic-settings<3.0.0,>=2.2.1",
+  "pyjwt<3.0.0,>=2.8.0",
+  "python-multipart<1.0.0,>=0.0.27",
+  "sqlmodel<1.0.0,>=0.0.21",
+  "tenacity<9.0.0,>=8.2.3",
+  "email-validator<3.0.0.0,>=2.1.0.post1",
+  "emails<1.0,>=0.6",
+  "pwdlib[argon2,bcrypt]>=0.3.0",
+  "sentry-sdk[fastapi]>=2.0.0,<3.0.0",
+  "gradio>=6.15.1",
+  "python-dotenv>=1.0.0",
+]
+
+[dependency-groups]
+ai = [
+  "langchain>=0.3.0",
+  "langchain-core>=1.4.0",
+  "langchain-openai>=1.2.2",
+  "langchain-tavily>=0.2.18",
+  "openai>=1.40.0",
+]
+
+rag = [
+  "chromadb>=0.5.0",
+  "langchain-chroma>=0.1.0",
+  "tiktoken>=0.7.0",
+]
+
+pdf = [
+  "weasyprint>=62.0",
+]
+
+dev = [
+  "coverage<8.0.0,>=7.4.3",
+  "mypy<2.0.0,>=1.8.0",
+  "prek>=0.2.24,<1.0.0",
+  "pytest<8.0.0,>=7.4.3",
+  "ruff<1.0.0,>=0.2.2",
+  "ty>=0.0.25",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.coverage.run]
+source = ["app"]
+dynamic_context = "test_function"
+
+[tool.coverage.report]
+show_missing = true
+sort = "-Cover"
+
+[tool.coverage.html]
+show_contexts = true
+
+[tool.mypy]
+strict = true
+exclude = ["venv", ".venv", "alembic"]
+
+[tool.ruff]
+target-version = "py310"
+exclude = ["alembic"]
+
+[tool.ruff.lint]
+select = [
+  "E",
+  "W",
+  "F",
+  "I",
+  "B",
+  "C4",
+  "UP",
+  "ARG001",
+  "T201",
+]
+ignore = [
+  "E501",
+  "B008",
+  "W191",
+  "B904",
+]
+
+[tool.ruff.lint.pyupgrade]
+keep-runtime-typing = true
+
+[tool.ty.terminal]
+error-on-warning = true
