@@ -1,4 +1,4 @@
-
+from pydantic_settings import BaseSettings
 
 def parse_cors_origins(origins: str) -> list[str] | str:
     """
@@ -14,3 +14,5 @@ def parse_cors_origins(origins: str) -> list[str] | str:
         return [origin.strip() for origin in origins[1:-1].split(",")]
     return [origin.strip() for origin in origins.split(",")]
 
+class Settings(BaseSettings):
+    
