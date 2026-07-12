@@ -1,6 +1,6 @@
 import uuid
 from typing import List
-from app.enums import ChatRole, SearchSessionStatus
+from app.enums import AgentStep, ChatRole, SearchSessionStatus
 from sqlmodel import Relationship, SQLModel, Field
 from pydantic import EmailStr
 from datetime import datetime, UTC
@@ -165,6 +165,23 @@ class SearchSession(SQLModel, AuditableBase, table=True):
     error_message: str | None = Field(default=None, description="An optional error message if the search session failed.")
 
     owner: "User" = Field(Relationship(back_populates="search_sessions"), description="The user associated with this search session.")
-    #TODO: Add relationships needed in the future    
+    search_history: List["SearchHistory"] = Field(Relationship(back_populates="session"), description="A list of search history records associated with this search session.")
 
+# Search history entity model
+class SearchHistory(SQLModel, table=True):
+    """
+    Database entity for the SearchHistory.
+    Represents a record of a completed search session.
+    """
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, description="The unique identifier for the search history record.")
+    search_session_id: uuid.UUID = Field(foreign_key="searchsession.id", description="The unique identifier of the search session associated with this history record.")
+    step: AgentStep = Field(description="The step of the AI travel agent's process that this history record corresponds to.")
+    input: str = Field(description="The input data for the corresponding step of the AI travel agent's process.")          
+    output: str = Field(description="The output data for the corresponding step of the AI travel agent's process.")        
+    duration_ms: int = Field(description="The duration in milliseconds for the corresponding step of the AI travel agent's process.")
+    created_at: datetime | None = Field(
+        default_factory= lambda: datetime.now(UTC), 
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
 
+    session: "SearchSession" = Field(Relationship(back_populates="search_history"), description="The search session associated with this history record.")    
