@@ -1,8 +1,11 @@
+import uuid
+
 from sqlmodel import SQLModel, Field
 from pydantic import EmailStr
+from datetime import datetime, UTC
 
 # Shared Model
-class UserBaseDTO(SQLModel):
+class UserBase(SQLModel):
     """
     Base model for user-related data.
     """ 
@@ -12,13 +15,12 @@ class UserBaseDTO(SQLModel):
     is_active: bool = Field(default=True, description="Indicates whether the user is active.")
     is_superuser: bool = Field(default=False, description="Indicates whether the user has superuser privileges.")
 
-# User creation models
-
-class UserCreateDTO(UserBaseDTO):
+# User creation DTOs
+class UserCreateDTO(UserBase):
     """
     Model for creating a new user.
     Used ONLY by the superuser to create a new user.
-    Inherits from UserBaseDTO and adds a password field.
+    Inherits from UserBase and adds a password field.
     """
     password: str = Field(min_length=8, description="The password for the user account.")
 
@@ -34,8 +36,7 @@ class UserCreateSignupDTO(SQLModel):
 
 
     
-# User update models
-
+# User update DTOs
 class UserUpdateDTO(SQLModel):
     """
     Model for updating user information.
@@ -61,6 +62,23 @@ class UserUpdateSelfDTO(SQLModel):
     password: str | None = Field(default=None, min_length=8, description="The password for the user account.")
     email: EmailStr | None = Field(default=None, max_length=100, description="The email address of the user.")
 
+class UserUpdatePasswordDTO(SQLModel):
+    """
+    Model for updating user password.
+    All fields are required to ensure proper password update.
+    """
+    current_password: str = Field(min_length=8, description="The current password of the user.")
+    new_password: str = Field(min_length=8, description="The new password for the user account.")
 
-
+# User model
+class User(UserBase, table=True):
+    """
+    Database model for the User.
+    """
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, description="The unique identifier for the user.")
+    hashed_password: str = Field(max_length=255, description="The hashed password for the user account.")
+    created_at: datetime | None = Field(
+        default_factory= datetime.now(UTC), 
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
 
