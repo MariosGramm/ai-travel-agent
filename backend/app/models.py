@@ -1,6 +1,6 @@
 import uuid
 from typing import List
-from app.enums import ChatRole
+from app.enums import ChatRole, SearchSessionStatus
 from sqlmodel import Relationship, SQLModel, Field
 from pydantic import EmailStr
 from datetime import datetime, UTC
@@ -94,8 +94,7 @@ class User(UserBase, AuditableBase, table=True):
     hashed_password: str = Field(max_length=255, description="The hashed password for the user account.")
 
     chat_sessions: List["ChatSession"] = Field(Relationship(back_populates="owner"), description="A list of chat sessions associated with the user.")
-
-    #TODO : Add relationships to other models if needed in the future.
+    search_sessions: List["SearchSession"] = Field(Relationship(back_populates="owner"), description="A list of search sessions associated with the user.")
 
 # Public user models for API responses
 class UserPublic(UserBase):
@@ -118,7 +117,7 @@ class UsersPublic(SQLModel):
 # CHAT MODELS
 #=======================================================================================================
 
-#Chat session entity model 
+# Chat session entity model 
 class ChatSession(SQLModel, AuditableBase, table=True):
     """
     Database entity for the ChatSession.
@@ -130,7 +129,7 @@ class ChatSession(SQLModel, AuditableBase, table=True):
 
     owner: "User" = Field(Relationship(back_populates="chat_sessions"), description="The user associated with this chat session.")
 
-#Chat message entity model
+# Chat message entity model
 class ChatMessage(SQLModel, AuditableBase, table=True):
     """
     Database entity for the ChatMessage.
@@ -145,5 +144,27 @@ class ChatMessage(SQLModel, AuditableBase, table=True):
         sa_type=DateTime(timezone=True),  # type: ignore
     )
 
+#=======================================================================================================
+# SEARCH MODELS
+#=======================================================================================================
 
-        
+# Search session entity model
+class SearchSession(SQLModel, AuditableBase, table=True):
+    """
+    Database entity for the SearchSession.
+    Represents a search session initiated by a user.
+    """
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, description="The unique identifier for the search session.")
+    owner_id: uuid.UUID = Field(foreign_key="user.id", description="The unique identifier of the user associated with this search session.")
+    destination: str = Field(max_length=200, description="The travel destination for the search session.")
+    date_from: datetime = Field(description="The start date for the travel search.")
+    date_to: datetime = Field(description="The end date for the travel search.")
+    budget: float = Field(description="The budget for the travel search.")
+    currency: str = Field(default="EUR", description="The currency code for the budget (e.g., USD, EUR).")
+    status: SearchSessionStatus = Field(default=SearchSessionStatus.PENDING, description="The status of the search session (pending, completed, or failed).")
+    error_message: str | None = Field(default=None, description="An optional error message if the search session failed.")
+
+    owner: "User" = Field(Relationship(back_populates="search_sessions"), description="The user associated with this search session.")
+    #TODO: Add relationships needed in the future    
+
+

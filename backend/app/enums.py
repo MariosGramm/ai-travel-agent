@@ -6,3 +6,11 @@ class ChatRole(StrEnum):
     """
     USER = "user"
     ASSISTANT = "assistant"
+
+class SearchSessionStatus(StrEnum):
+    """
+    Enum representing the status of a search session.
+    """
+    PENDING = "pending"
+    COMPLETED = "completed"
+    FAILED = "failed"
