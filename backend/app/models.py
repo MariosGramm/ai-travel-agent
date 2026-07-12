@@ -101,6 +101,7 @@ class UsersPublic(SQLModel):
     Used for API responses when returning multiple users.
     """
     users: list[UserPublic] = Field(description="A list of public user representations.")
+    count: int = Field(description="The total number of users returned.")
 
 
 
