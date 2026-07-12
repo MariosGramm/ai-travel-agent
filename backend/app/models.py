@@ -15,6 +15,7 @@ class UserBase(SQLModel):
     is_active: bool = Field(default=True, description="Indicates whether the user is active.")
     is_superuser: bool = Field(default=False, description="Indicates whether the user has superuser privileges.")
 
+
 # User creation DTOs
 class UserCreateDTO(UserBase):
     """
@@ -33,8 +34,6 @@ class UserCreateSignupDTO(SQLModel):
     last_name: str = Field(max_length=50, description="The last name of the user.")
     email : EmailStr = Field(max_length=100, description="The email address of the user.")
     password: str = Field(min_length=8, description="The password for the user account.")
-
-
     
 # User update DTOs
 class UserUpdateDTO(SQLModel):
@@ -43,7 +42,6 @@ class UserUpdateDTO(SQLModel):
     Used ONLY by the superuser to update user information.
     All fields are optional to allow partial updates.
     """
-
     email: EmailStr | None = Field(default=None, max_length=100, description="The email address of the user.")
     first_name: str | None = Field(default=None, max_length=50, description="The first name of the user.")
     last_name: str | None = Field(default=None, max_length=50, description="The last name of the user.")
@@ -70,15 +68,40 @@ class UserUpdatePasswordDTO(SQLModel):
     current_password: str = Field(min_length=8, description="The current password of the user.")
     new_password: str = Field(min_length=8, description="The new password for the user account.")
 
-# User model
+# User entity model
 class User(UserBase, table=True):
     """
-    Database model for the User.
+    Database entity for the User.
     """
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, description="The unique identifier for the user.")
     hashed_password: str = Field(max_length=255, description="The hashed password for the user account.")
     created_at: datetime | None = Field(
-        default_factory= datetime.now(UTC), 
+        default_factory= lambda: datetime.now(UTC), 
         sa_type=DateTime(timezone=True),  # type: ignore
     )
+    updated_at: datetime | None = Field(
+        default_factory= lambda: datetime.now(UTC),
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+
+    #TODO : Add relationships to other models if needed in the future.
+
+# Public user models for API responses
+class UserPublic(UserBase):
+    """
+    Public representation of the User model.
+    Used for API responses to avoid exposing sensitive information.
+    """
+    id: uuid.UUID = Field(description="The unique identifier for the user.")
+    created_at: datetime | None = Field(description="The timestamp when the user was created.")
+
+class UsersPublic(SQLModel):
+    """
+    Model for a list of public user representations.
+    Used for API responses when returning multiple users.
+    """
+    users: list[UserPublic] = Field(description="A list of public user representations.")
+
+
+
 
