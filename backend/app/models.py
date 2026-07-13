@@ -138,8 +138,8 @@ class ChatSessionPublicDTO(SQLModel):
     Public representation of the ChatSession model.
     Used for API responses to avoid exposing sensitive information.
     """
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, description="The unique identifier for the chat session.")
-    owner_id: uuid.UUID = Field(foreign_key="user.id", description="The unique identifier of the user associated with this chat session.")
+    id: uuid.UUID
+    owner_id: uuid.UUID
     title: str | None
     created_at: datetime | None
     updated_at: datetime | None
