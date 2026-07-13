@@ -213,8 +213,8 @@ class SearchSession(SQLModel, AuditableBase, table=True):
     error_message: str | None = Field(default=None, description="An optional error message if the search session failed.")
 
     owner: "User" = Field(Relationship(back_populates="search_sessions"), description="The user associated with this search session.")
-    search_history: list["SearchHistory"] = Field(Relationship(back_populates="session"), description="A list of search history records associated with this search session.")
-    travel_packages: list["TravelPackage"] = Field(Relationship(back_populates="session"), description="A list of travel packages that were generated in the current search session")
+    search_history: list["SearchHistory"] = Field(Relationship(back_populates="search_session"), description="A list of search history records associated with this search session.")
+    travel_packages: list["TravelPackage"] = Field(Relationship(back_populates="search_session"), description="A list of travel packages that were generated in the current search session")
 
 # Public search session DTO for API responses
 class SearchSessionPublicDTO(SQLModel):
@@ -251,7 +251,7 @@ class SearchHistory(SQLModel, table=True):
         sa_type=DateTime(timezone=True),  # type: ignore
     )
 
-    session: "SearchSession" = Field(Relationship(back_populates="search_history"), description="The search session associated with this history record.")
+    search_session: "SearchSession" = Field(Relationship(back_populates="search_history"), description="The search session associated with this history record.")
 
 #=======================================================================================================
 # TRAVEL MODELS (Search results)
@@ -284,9 +284,9 @@ class TravelPackage(SQLModel, table=True):
         sa_type=DateTime(timezone=True),  # type: ignore
     )
 
-    search_session : SearchSession = Field(Relationship(back_populates="packages"), description="The search session in which the current travel package was generated")
+    search_session : SearchSession = Field(Relationship(back_populates="travel_packages"), description="The search session in which the current travel package was generated")
     itinerary: list["Itinerary"] = Field(Relationship(back_populates="package"), description="A list of itineraries contained in the current travel package") 
-    accomondations: list["Accommodation"] = Field(Relationship(back_populates="package"), description="A list of accommodations contained in the current travel package")
+    accommodations: list["Accommodation"] = Field(Relationship(back_populates="package"), description="A list of accommodations contained in the current travel package")
 
 # Public travel package DTO for API responses
 class TravelPackagePublicDTO(SQLModel):
