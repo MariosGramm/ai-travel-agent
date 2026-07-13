@@ -59,4 +59,12 @@ class ActivityType(StrEnum):
     FOOD = "food"
     ADVENTURE = "adventure"
 
-    
+class AccommodationType(StrEnum):
+    """
+    Enum representing the type of an accommodation.
+    """
+    HOTEL = "hotel"
+    HOSTEL = "hostel"
+    AIRBNB = "airbnb"
+
+
