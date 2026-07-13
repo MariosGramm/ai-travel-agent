@@ -1,7 +1,7 @@
 import uuid
 from typing import List
-from app.enums import AgentStep, ChatRole, SearchSessionStatus
-from sqlmodel import Relationship, SQLModel, Field
+from app.enums import AgentStep, ChatRole, Currency, SearchSessionStatus, TravelPackageTier
+from sqlmodel import ARRAY, Column, Relationship, SQLModel, Field, String
 from pydantic import EmailStr
 from datetime import datetime, UTC
 
@@ -96,8 +96,8 @@ class User(UserBase, AuditableBase, table=True):
     chat_sessions: List["ChatSession"] = Field(Relationship(back_populates="owner"), description="A list of chat sessions associated with the user.")
     search_sessions: List["SearchSession"] = Field(Relationship(back_populates="owner"), description="A list of search sessions associated with the user.")
 
-# Public user models for API responses
-class UserPublic(UserBase):
+# Public user DTOs for API responses
+class UserPublicDTO(UserBase):
     """
     Public representation of the User model.
     Used for API responses to avoid exposing sensitive information.
@@ -105,12 +105,12 @@ class UserPublic(UserBase):
     id: uuid.UUID = Field(description="The unique identifier for the user.")
     created_at: datetime | None = Field(description="The timestamp when the user was created.")
 
-class UsersPublic(SQLModel):
+class UsersPublicDTO(SQLModel):
     """
     Model for a list of public user representations.
     Used for API responses when returning multiple users.
     """
-    users: list[UserPublic] = Field(description="A list of public user representations.")
+    users: list[UserPublicDTO] = Field(description="A list of public user representations.")
     count: int = Field(description="The total number of users returned.")
 
 #=======================================================================================================
@@ -125,9 +125,9 @@ class ChatSession(SQLModel, AuditableBase, table=True):
     """
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, description="The unique identifier for the chat session.")
     owner_id: uuid.UUID = Field(foreign_key="user.id", description="The unique identifier of the user associated with this chat session.")
-    memory: List[str] = Field(default=[], description="A list of messages exchanged in the chat session.")
 
     owner: "User" = Field(Relationship(back_populates="chat_sessions"), description="The user associated with this chat session.")
+    messages : list["ChatMessage"] = Relationship(back_populates="session")
 
 # Chat message entity model
 class ChatMessage(SQLModel, AuditableBase, table=True):
@@ -137,12 +137,14 @@ class ChatMessage(SQLModel, AuditableBase, table=True):
     """
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, description="The unique identifier for the chat message.")
     chat_session_id: uuid.UUID = Field(foreign_key="chatsession.id", description="The unique identifier of the chat session associated with this message.")
-    role : ChatRole = Field(description="The role of the participant who sent the message (user or assistant).")    #user or assistant
+    role : ChatRole = Field(description="The role of the participant who sent the message (user or assistant).")    
     content: str = Field(description="The content of the chat message.")
     created_at: datetime | None = Field(
         default_factory= lambda: datetime.now(UTC), 
         sa_type=DateTime(timezone=True),  # type: ignore
     )
+
+    session: "ChatSession" = Relationship(back_populates="messages")
 
 #=======================================================================================================
 # SEARCH MODELS
@@ -160,12 +162,13 @@ class SearchSession(SQLModel, AuditableBase, table=True):
     date_from: datetime = Field(description="The start date for the travel search.")
     date_to: datetime = Field(description="The end date for the travel search.")
     budget: float = Field(description="The budget for the travel search.")
-    currency: str = Field(default="EUR", description="The currency code for the budget (e.g., USD, EUR).")
+    currency: Currency = Field(default=Currency.EUR, description="The currency code for the budget (e.g., USD, EUR).")
     status: SearchSessionStatus = Field(default=SearchSessionStatus.PENDING, description="The status of the search session (pending, completed, or failed).")
     error_message: str | None = Field(default=None, description="An optional error message if the search session failed.")
 
     owner: "User" = Field(Relationship(back_populates="search_sessions"), description="The user associated with this search session.")
     search_history: List["SearchHistory"] = Field(Relationship(back_populates="session"), description="A list of search history records associated with this search session.")
+    travel_packages: List["TravelPackage"] = Field(Relationship(back_populates="session"), description="A list of travel packages that were generated in the current search session")
 
 # Search history entity model
 class SearchHistory(SQLModel, table=True):
@@ -184,4 +187,49 @@ class SearchHistory(SQLModel, table=True):
         sa_type=DateTime(timezone=True),  # type: ignore
     )
 
-    session: "SearchSession" = Field(Relationship(back_populates="search_history"), description="The search session associated with this history record.")    
+    session: "SearchSession" = Field(Relationship(back_populates="search_history"), description="The search session associated with this history record.")
+
+#=======================================================================================================
+# TRAVEL MODELS (Search results)
+#=======================================================================================================
+
+# Travel package entity model
+class TravelPackage(SQLModel, table=True):
+    """
+    Database entity for the TravelPackage.
+    Represents a travel package as a search result.
+    """
+    id : uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, description="The unique identifier for the travel package.")
+    session_id: uuid.UUID = Field(foreign_key="searchsession.id", description="The unique identifier of the search session associated with this travel package.")
+
+    tier : TravelPackageTier = Field(description="The tier of the travel package (budget, standard, or luxury).")
+    estimated_cost_min: float = Field(description="The minimum estimated cost of the travel package")
+    estimated_cost_max: float = Field(description="The maximum estimated cost of the travel package")
+    currency: Currency = Field(default=Currency.EUR, description="The currency code for the budget (e.g., USD, EUR).")
+
+    transportation: str | None = Field(default= None, description= "The description of the tranportation")
+    travel_tips: List[str] | None = Field(default_factory=list, sa_column=Column(ARRAY(String)), description="Extra information for the visitors in the form of tips")
+
+    # Weather summary might be unavailable if the travel date is outside the available forecast range.
+    weather_summary: str | None = Field(default=None, description="Weather summary for the period which the visitors will visit the place")
+
+    created_at: datetime | None = Field(
+        default_factory= lambda: datetime.now(UTC), 
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+
+    search_session : SearchSession = Field(Relationship(back_populates="packages"), description="The search session in which the current travel package was generated")
+    itinerary: List["Itinerary"] = Field(Relationship(back_populates="package"), description="A list of itineraries contained in the current travel package") #TODO:Add Itinerary entity model
+    accomondations: List["Accommodation"] = Field(Relationship(back_populates="package"), description="A list of accommodations contained in the current travel package")  #TODO:Add Accommodation entity model
+    activities: List["Activity"] = Field(Relationship(back_populates="package"), description="A list of activities contained in the current travel package")    #TODO:Add Activity entity model
+
+
+
+
+
+    
+
+
+
+
+
