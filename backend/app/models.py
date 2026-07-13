@@ -86,6 +86,8 @@ class UserUpdatePasswordDTO(SQLModel):
 
 # User entity model
 class User(UserBase, AuditableBase, table=True):
+    __tablename__ = "user"
+
     """
     Database entity for the User.
     """
@@ -118,6 +120,8 @@ class UsersPublicDTO(SQLModel):
 
 # Chat session entity model 
 class ChatSession(SQLModel, AuditableBase, table=True):
+    __tablename__ = "chat_session"
+
     """
     Database entity for the ChatSession.
     Represents a chat session between a user and the AI travel agent.
@@ -130,12 +134,14 @@ class ChatSession(SQLModel, AuditableBase, table=True):
 
 # Chat message entity model
 class ChatMessage(SQLModel, AuditableBase, table=True):
+    __tablename__ = "chat_message"
+
     """
     Database entity for the ChatMessage.
     Represents a single message in a chat session.
     """
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, description="The unique identifier for the chat message.")
-    chat_session_id: uuid.UUID = Field(foreign_key="chatsession.id", description="The unique identifier of the chat session associated with this message.")
+    chat_session_id: uuid.UUID = Field(foreign_key="chat_session.id", description="The unique identifier of the chat session associated with this message.")
     role : ChatRole = Field(description="The role of the participant who sent the message (user or assistant).")    
     content: str = Field(description="The content of the chat message.")
     created_at: datetime | None = Field(
@@ -151,6 +157,8 @@ class ChatMessage(SQLModel, AuditableBase, table=True):
 
 # Search session entity model
 class SearchSession(SQLModel, AuditableBase, table=True):
+    __tablename__ = "search_session"
+
     """
     Database entity for the SearchSession.
     Represents a search session initiated by a user.
@@ -171,12 +179,14 @@ class SearchSession(SQLModel, AuditableBase, table=True):
 
 # Search history entity model
 class SearchHistory(SQLModel, table=True):
+    __tablename__ = "search_history"
+
     """
     Database entity for the SearchHistory.
     Represents a record of a completed search session.
     """
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, description="The unique identifier for the search history record.")
-    search_session_id: uuid.UUID = Field(foreign_key="searchsession.id", description="The unique identifier of the search session associated with this history record.")
+    search_session_id: uuid.UUID = Field(foreign_key="search_session.id", description="The unique identifier of the search session associated with this history record.")
     step: AgentStep = Field(description="The step of the AI travel agent's process that this history record corresponds to.")
     input: str = Field(description="The input data for the corresponding step of the AI travel agent's process.")          
     output: str = Field(description="The output data for the corresponding step of the AI travel agent's process.")        
@@ -194,12 +204,14 @@ class SearchHistory(SQLModel, table=True):
 
 # Travel package entity model
 class TravelPackage(SQLModel, table=True):
+    __tablename__ = "travel_package"
+
     """
     Database entity for the TravelPackage.
     Represents a travel package as a search result.
     """
     id : uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, description="The unique identifier for the travel package.")
-    session_id: uuid.UUID = Field(foreign_key="searchsession.id", description="The unique identifier of the search session associated with this travel package.")
+    session_id: uuid.UUID = Field(foreign_key="search_session.id", description="The unique identifier of the search session associated with this travel package.")
 
     tier : TravelPackageTier = Field(description="The tier of the travel package (budget, standard, or luxury).")
     estimated_cost_min: float = Field(description="The minimum estimated cost of the travel package")
@@ -223,13 +235,15 @@ class TravelPackage(SQLModel, table=True):
 
 # Itinerary package entity model
 class Itinerary(SQLModel, table=True):
+    __tablename__ = "itinerary"
+
     """
     Database entity for the Itinerary.
     Represents an itinerary (a DAILY plan) which consists of activities.
     One record = One day
     """
     id : uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, description="The unique identifier for the itinerary.")
-    travel_package_id: uuid.UUID = Field(foreign_key="travelpackage.id", ondelete="CASCADE")
+    travel_package_id: uuid.UUID = Field(foreign_key="travel_package.id", ondelete="CASCADE")
 
     day_number:int = Field(description="The number of the day of the itinerary")
     date: datetime | None = Field(
@@ -244,6 +258,8 @@ class Itinerary(SQLModel, table=True):
 
 # Activity entity model
 class Activity(SQLModel, table=True):
+    __tablename__ = "activity"
+
     """
     Database entity for the Activity.
     Represents an activity that the visitor can take part in.
@@ -260,12 +276,14 @@ class Activity(SQLModel, table=True):
 
 # Accommodation entity model
 class Accommodation(SQLModel, table = True):
+    __tablename__ = "accommodation"
+
     """
     Database entity for the Accommodation.
     Represents an accommodation a visitor can stay. 
     """
     id : uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, description="The unique identifier for the accommodation.")
-    package_id: uuid.UUID = Field(foreign_key="travelpackage.id", ondelete="CASCADE")
+    package_id: uuid.UUID = Field(foreign_key="travel_package.id", ondelete="CASCADE")
     name:str = Field(max_length=200, description="The name of the accommodation")
     type: AccommodationType = Field(default=AccommodationType.HOTEL, description="The type of the accommodation (hotel or hostel or airbnb).")
     area: str | None = Field(default=None, max_length=100, description="The area in which the accommodation is located at.")
@@ -274,28 +292,4 @@ class Accommodation(SQLModel, table = True):
     extra_info: str | None = Field(default=None, description="Any extra information regarding the accommodation")
 
     package: TravelPackage = Relationship(back_populates="accommodations")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#TODO:Add Accommodation entity model
-    
-
-
-    
-
-
-
-
 
