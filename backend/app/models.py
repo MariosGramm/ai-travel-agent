@@ -152,6 +152,14 @@ class ChatSessionsPublicDTO(SQLModel):
     chat_sessions: list[ChatSessionPublicDTO] = Field(description="A list of public chat session representations.")
     count: int = Field(description="The total number of chat sessions returned.")
 
+# Create DTO for ChatSession creation
+class ChatSessionCreateDTO(SQLModel):
+    title: str | None = Field(
+        default=None,
+        max_length=100,
+        description="Optional title. Auto-generated if not provided."
+    )
+
 # Chat message entity model
 class ChatMessage(SQLModel, AuditableBase, table=True):
     __tablename__ = "chat_message"
@@ -189,6 +197,12 @@ class ChatMessagesPublicDTO(SQLModel):
     """ 
     data: list[ChatMessagePublicDTO]
     count: int
+
+# Create DTO for ChatMessage creation
+class ChatMessageCreateDTO(SQLModel):
+    content: str = Field(
+        description="The message content sent by the user."
+    )
 
 #=======================================================================================================
 # SEARCH MODELS
@@ -231,6 +245,27 @@ class SearchSessionPublicDTO(SQLModel):
     currency: Currency
     created_at: datetime | None
     packages: list["TravelPackagePublicDTO"]
+
+# Create DTO for SearchSession creation
+class SearchSessionCreateDTO(SQLModel):
+    destination: str = Field(
+        max_length=200,
+        description="The travel destination."
+    )
+    date_from: datetime = Field(
+        description="The start date of the trip."
+    )
+    date_to: datetime = Field(
+        description="The end date of the trip."
+    )
+    budget: float | None = Field(
+        default=None,
+        description="Optional budget for the trip."
+    )
+    currency: Currency = Field(
+        default=Currency.EUR,
+        description="The currency of the budget."
+    )
 
 # Search history entity model
 class SearchHistory(SQLModel, table=True):
