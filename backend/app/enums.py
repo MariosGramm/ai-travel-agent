@@ -35,10 +35,28 @@ class TravelPackageTier(StrEnum):
 
 class Currency(StrEnum):
     """
-    Currency codes for exchange rate differences.
+    Enum representing currency codes for exchange rate differences.
     """
     EUR = "EUR"
     USD = "USD"
     GBP = "GBP"
     JPY = "JPY"
     CHF = "CHF"
+
+class PartOfDay(StrEnum):
+    """
+    Enum representing parts of one day.
+    """
+    MORNING = "morning"
+    AFTERNOON = "afternoon"
+    EVENING = "evening"
+
+class ActivityType(StrEnum):
+    """
+    Enum representing the different kinds of activities.
+    """
+    SIGHTSEEING = "sightseeing"
+    FOOD = "food"
+    ADVENTURE = "adventure"
+
+    
