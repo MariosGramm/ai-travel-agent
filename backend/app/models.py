@@ -128,7 +128,7 @@ class ChatSession(SQLModel, AuditableBase, table=True):
     """
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, description="The unique identifier for the chat session.")
     owner_id: uuid.UUID = Field(foreign_key="user.id", description="The unique identifier of the user associated with this chat session.")
-    title: str = Field(description="The title of the chat session")
+    title: str | None = Field(default=None, max_length=100, description="The title of the chat session")
     owner: "User" = Field(Relationship(back_populates="chat_sessions"), description="The user associated with this chat session.")
     messages : list["ChatMessage"] = Relationship(back_populates="session")
 
@@ -221,7 +221,7 @@ class SearchSession(SQLModel, AuditableBase, table=True):
     destination: str = Field(max_length=200, description="The travel destination for the search session.")
     date_from: datetime = Field(description="The start date for the travel search.")
     date_to: datetime = Field(description="The end date for the travel search.")
-    budget: float = Field(description="The budget for the travel search.")
+    budget: float | None = Field(default=None, description="The budget for the travel search.")
     currency: Currency = Field(default=Currency.EUR, description="The currency code for the budget (e.g., USD, EUR).")
     status: SearchSessionStatus = Field(default=SearchSessionStatus.PENDING, description="The status of the search session (pending, completed, or failed).")
     error_message: str | None = Field(default=None, description="An optional error message if the search session failed.")
