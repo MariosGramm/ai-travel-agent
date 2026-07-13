@@ -1,7 +1,7 @@
 import uuid
 from typing import List
 from app.enums import AgentStep, ChatRole, Currency, SearchSessionStatus, TravelPackageTier
-from sqlmodel import ARRAY, Column, Relationship, SQLModel, Field, String
+from sqlmodel import ARRAY, Column, DateTime, Relationship, SQLModel, Field, String
 from pydantic import EmailStr
 from datetime import datetime, UTC
 
@@ -219,12 +219,32 @@ class TravelPackage(SQLModel, table=True):
     )
 
     search_session : SearchSession = Field(Relationship(back_populates="packages"), description="The search session in which the current travel package was generated")
-    itinerary: List["Itinerary"] = Field(Relationship(back_populates="package"), description="A list of itineraries contained in the current travel package") #TODO:Add Itinerary entity model
-    accomondations: List["Accommodation"] = Field(Relationship(back_populates="package"), description="A list of accommodations contained in the current travel package")  #TODO:Add Accommodation entity model
-    activities: List["Activity"] = Field(Relationship(back_populates="package"), description="A list of activities contained in the current travel package")    #TODO:Add Activity entity model
+    itinerary: List["Itinerary"] = Field(Relationship(back_populates="package"), description="A list of itineraries contained in the current travel package") 
+    accomondations: List["Accommodation"] = Field(Relationship(back_populates="package"), description="A list of accommodations contained in the current travel package")  
 
+# Itinerary package entity model
+class Itinerary(SQLModel, table=True):
+    """
+    Database entity for the Itinerary.
+    Represents an itinerary (a DAILY plan) which consists of activities.
+    One record = One day
+    """
+    id : uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, description="The unique identifier for the itinerary.")
+    travel_package_id: uuid.UUID = Field(foreign_key="travelpackage.id", ondelete="CASCADE")
 
+    day_number:int = Field(description="The number of the day of the itinerary")
+    date: datetime | None = Field(
+        default=None,
+        sa_column=Column(DateTime(timezone=True))
+    )
+    description: str = Field(description="The description of the day's itinerary")
+    estimated_daily_cost: float | None = Field(default=None)
 
+    package: TravelPackage = Relationship(back_populates="itinerary")
+    activities: list["Activity"] = Relationship(back_populates="itinerary") 
+
+    #TODO:Add Accommodation entity model
+    #TODO:Add Activity entity model
 
 
     
