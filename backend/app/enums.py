@@ -24,3 +24,21 @@ class AgentStep(StrEnum):
     PLACES_FETCH   = "places_fetch"
     FLIGHTS_FETCH  = "flights_fetch"   
     LLM_GENERATION = "llm_generation"
+
+class TravelPackageTier(StrEnum):
+    """
+    Enum representing the tiers of travel packages.
+    """
+    BUDGET = "budget"
+    STANDARD = "standard"
+    LUXURY = "luxury"
+
+class Currency(StrEnum):
+    """
+    Currency codes for exchange rate differences.
+    """
+    EUR = "EUR"
+    USD = "USD"
+    GBP = "GBP"
+    JPY = "JPY"
+    CHF = "CHF"
