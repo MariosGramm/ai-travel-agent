@@ -216,6 +216,22 @@ class SearchSession(SQLModel, AuditableBase, table=True):
     search_history: list["SearchHistory"] = Field(Relationship(back_populates="session"), description="A list of search history records associated with this search session.")
     travel_packages: list["TravelPackage"] = Field(Relationship(back_populates="session"), description="A list of travel packages that were generated in the current search session")
 
+# Public search session DTO for API responses
+class SearchSessionPublicDTO(SQLModel):
+    """
+    Public representation of the SearchSession model.
+    Used for API responses to avoid exposing sensitive information.
+    """
+    id: uuid.UUID
+    status: SearchSessionStatus
+    destination: str
+    date_from: datetime
+    date_to: datetime
+    budget: float | None
+    currency: Currency
+    created_at: datetime | None
+    packages: list["TravelPackagePublicDTO"]
+
 # Search history entity model
 class SearchHistory(SQLModel, table=True):
     __tablename__ = "search_history"
@@ -270,7 +286,20 @@ class TravelPackage(SQLModel, table=True):
 
     search_session : SearchSession = Field(Relationship(back_populates="packages"), description="The search session in which the current travel package was generated")
     itinerary: list["Itinerary"] = Field(Relationship(back_populates="package"), description="A list of itineraries contained in the current travel package") 
-    accomondations: list["Accommodation"] = Field(Relationship(back_populates="package"), description="A list of accommodations contained in the current travel package")  
+    accomondations: list["Accommodation"] = Field(Relationship(back_populates="package"), description="A list of accommodations contained in the current travel package")
+
+# Public travel package DTO for API responses
+class TravelPackagePublicDTO(SQLModel):
+    id: uuid.UUID
+    tier: TravelPackageTier
+    estimated_cost_min: float
+    estimated_cost_max: float
+    currency: Currency
+    transportation: str | None
+    travel_tips: list[str] | None
+    weather_summary: str | None
+    itinerary: list["ItineraryPublicDTO"]
+    accommodations: list["AccommodationPublicDTO"]
 
 # Itinerary package entity model
 class Itinerary(SQLModel, table=True):
@@ -293,7 +322,16 @@ class Itinerary(SQLModel, table=True):
     estimated_daily_cost: float | None = Field(default=None)
 
     package: TravelPackage = Relationship(back_populates="itinerary")
-    activities: list["Activity"] = Relationship(back_populates="itinerary") 
+    activities: list["Activity"] = Relationship(back_populates="itinerary")
+
+# Public itinerary DTO for API responses
+class ItineraryPublicDTO(SQLModel):
+    id: uuid.UUID
+    day_number: int
+    date: datetime | None
+    description: str
+    estimated_daily_cost: float | None
+    activities: list["ActivityPublicDTO"]
 
 # Activity entity model
 class Activity(SQLModel, table=True):
@@ -313,6 +351,16 @@ class Activity(SQLModel, table=True):
 
     itinerary: Itinerary = Relationship(back_populates="activities")
 
+#Public activity DTO for API responses
+class ActivityPublicDTO(SQLModel):
+    id: uuid.UUID
+    type: ActivityType
+    title: str
+    estimated_cost: float | None
+    average_duration_hours: int | None
+    part_of_day: PartOfDay
+
+
 # Accommodation entity model
 class Accommodation(SQLModel, table = True):
     __tablename__ = "accommodation"
@@ -331,4 +379,14 @@ class Accommodation(SQLModel, table = True):
     extra_info: str | None = Field(default=None, description="Any extra information regarding the accommodation")
 
     package: TravelPackage = Relationship(back_populates="accommodations")
+
+# Public accommodation DTO for API responses
+class AccommodationPublicDTO(SQLModel):
+    id: uuid.UUID
+    name: str
+    type: AccommodationType
+    area: str | None
+    cost_per_night: float | None
+    rating: float | None
+    extra_info: str | None
 
