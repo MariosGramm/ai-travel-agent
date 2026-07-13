@@ -128,9 +128,29 @@ class ChatSession(SQLModel, AuditableBase, table=True):
     """
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, description="The unique identifier for the chat session.")
     owner_id: uuid.UUID = Field(foreign_key="user.id", description="The unique identifier of the user associated with this chat session.")
-
+    title: str = Field(description="The title of the chat session")
     owner: "User" = Field(Relationship(back_populates="chat_sessions"), description="The user associated with this chat session.")
     messages : list["ChatMessage"] = Relationship(back_populates="session")
+
+# Public chat session DTOs for API responses
+class ChatSessionPublicDTO(SQLModel):
+    """
+    Public representation of the ChatSession model.
+    Used for API responses to avoid exposing sensitive information.
+    """
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, description="The unique identifier for the chat session.")
+    owner_id: uuid.UUID = Field(foreign_key="user.id", description="The unique identifier of the user associated with this chat session.")
+    title: str | None
+    created_at: datetime | None
+    updated_at: datetime | None
+
+class ChatSessionsPublicDTO(SQLModel):
+    """
+    Model for a list of public chat session representations.
+    Used for API responses when returning multiple chat sessions.
+    """    
+    chat_sessions: list[ChatSessionPublicDTO] = Field(description="A list of public chat session representations.")
+    count: int = Field(description="The total number of chat sessions returned.")
 
 # Chat message entity model
 class ChatMessage(SQLModel, AuditableBase, table=True):
@@ -150,6 +170,25 @@ class ChatMessage(SQLModel, AuditableBase, table=True):
     )
 
     session: "ChatSession" = Relationship(back_populates="messages")
+
+# Public chat message DTOs for API responses
+class ChatMessagePublicDTO(SQLModel):
+    """
+    Public representation of the ChatMessage model.
+    Used for API responses to avoid exposing sensitive information.
+    """
+    role: ChatRole
+    content: str
+    created_at: datetime | None
+
+
+class ChatMessagesPublicDTO(SQLModel):
+    """
+    Model for a list of public chat message representations.
+    Used for API responses when returning multiple chat messages.
+    """ 
+    data: list[ChatMessagePublicDTO]
+    count: int
 
 #=======================================================================================================
 # SEARCH MODELS
