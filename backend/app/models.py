@@ -1,6 +1,5 @@
 import uuid
-from typing import List
-from app.enums import AgentStep, ChatRole, Currency, SearchSessionStatus, TravelPackageTier
+from app.enums import ActivityType, AgentStep, ChatRole, Currency, PartOfDay, SearchSessionStatus, TravelPackageTier
 from sqlmodel import ARRAY, Column, DateTime, Relationship, SQLModel, Field, String
 from pydantic import EmailStr
 from datetime import datetime, UTC
@@ -93,8 +92,8 @@ class User(UserBase, AuditableBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, description="The unique identifier for the user.")
     hashed_password: str = Field(max_length=255, description="The hashed password for the user account.")
 
-    chat_sessions: List["ChatSession"] = Field(Relationship(back_populates="owner"), description="A list of chat sessions associated with the user.")
-    search_sessions: List["SearchSession"] = Field(Relationship(back_populates="owner"), description="A list of search sessions associated with the user.")
+    chat_sessions: list["ChatSession"] = Field(Relationship(back_populates="owner"), description="A list of chat sessions associated with the user.")
+    search_sessions: list["SearchSession"] = Field(Relationship(back_populates="owner"), description="A list of search sessions associated with the user.")
 
 # Public user DTOs for API responses
 class UserPublicDTO(UserBase):
@@ -167,8 +166,8 @@ class SearchSession(SQLModel, AuditableBase, table=True):
     error_message: str | None = Field(default=None, description="An optional error message if the search session failed.")
 
     owner: "User" = Field(Relationship(back_populates="search_sessions"), description="The user associated with this search session.")
-    search_history: List["SearchHistory"] = Field(Relationship(back_populates="session"), description="A list of search history records associated with this search session.")
-    travel_packages: List["TravelPackage"] = Field(Relationship(back_populates="session"), description="A list of travel packages that were generated in the current search session")
+    search_history: list["SearchHistory"] = Field(Relationship(back_populates="session"), description="A list of search history records associated with this search session.")
+    travel_packages: list["TravelPackage"] = Field(Relationship(back_populates="session"), description="A list of travel packages that were generated in the current search session")
 
 # Search history entity model
 class SearchHistory(SQLModel, table=True):
@@ -208,7 +207,7 @@ class TravelPackage(SQLModel, table=True):
     currency: Currency = Field(default=Currency.EUR, description="The currency code for the budget (e.g., USD, EUR).")
 
     transportation: str | None = Field(default= None, description= "The description of the tranportation")
-    travel_tips: List[str] | None = Field(default_factory=list, sa_column=Column(ARRAY(String)), description="Extra information for the visitors in the form of tips")
+    travel_tips: list[str] | None = Field(default_factory=list, sa_column=Column(ARRAY(String)), description="Extra information for the visitors in the form of tips")
 
     # Weather summary might be unavailable if the travel date is outside the available forecast range.
     weather_summary: str | None = Field(default=None, description="Weather summary for the period which the visitors will visit the place")
@@ -219,8 +218,8 @@ class TravelPackage(SQLModel, table=True):
     )
 
     search_session : SearchSession = Field(Relationship(back_populates="packages"), description="The search session in which the current travel package was generated")
-    itinerary: List["Itinerary"] = Field(Relationship(back_populates="package"), description="A list of itineraries contained in the current travel package") 
-    accomondations: List["Accommodation"] = Field(Relationship(back_populates="package"), description="A list of accommodations contained in the current travel package")  
+    itinerary: list["Itinerary"] = Field(Relationship(back_populates="package"), description="A list of itineraries contained in the current travel package") 
+    accomondations: list["Accommodation"] = Field(Relationship(back_populates="package"), description="A list of accommodations contained in the current travel package")  
 
 # Itinerary package entity model
 class Itinerary(SQLModel, table=True):
@@ -243,8 +242,36 @@ class Itinerary(SQLModel, table=True):
     package: TravelPackage = Relationship(back_populates="itinerary")
     activities: list["Activity"] = Relationship(back_populates="itinerary") 
 
-    #TODO:Add Accommodation entity model
-    #TODO:Add Activity entity model
+# Activity entity model
+class Activity(SQLModel, table=True):
+    """
+    Database entity for the Activity.
+    Represents an activity that the visitor can take part in.
+    """
+    id : uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, description="The unique identifier for the activity.")
+    type: ActivityType = Field(default=ActivityType.SIGHTSEEING, description="The type of the activity (sightseeing, adventure or food)")
+    itinerary_id: uuid.UUID = Field(foreign_key="itinerary.id", ondelete="CASCADE")
+    title: str = Field(max_length=200)
+    estimated_cost: float | None = Field(default=None, description="The estimated cost of the activity")
+    average_duration_hours: int | None = Field(default=None, description="The average duration of the activity in hours")
+    part_of_day: PartOfDay = Field(default=PartOfDay.MORNING, description="The part of the day the activity (morning, afternoon, evening)")
+
+    itinerary: Itinerary = Relationship(back_populates="activities")
+
+
+
+
+
+
+
+
+
+
+
+
+
+#TODO:Add Accommodation entity model
+    
 
 
     
