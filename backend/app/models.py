@@ -1,5 +1,5 @@
 import uuid
-from app.enums import ActivityType, AgentStep, ChatRole, Currency, PartOfDay, SearchSessionStatus, TravelPackageTier
+from app.enums import AccommodationType, ActivityType, AgentStep, ChatRole, Currency, PartOfDay, SearchSessionStatus, TravelPackageTier
 from sqlmodel import ARRAY, Column, DateTime, Relationship, SQLModel, Field, String
 from pydantic import EmailStr
 from datetime import datetime, UTC
@@ -257,6 +257,25 @@ class Activity(SQLModel, table=True):
     part_of_day: PartOfDay = Field(default=PartOfDay.MORNING, description="The part of the day the activity (morning, afternoon, evening)")
 
     itinerary: Itinerary = Relationship(back_populates="activities")
+
+# Accommodation entity model
+class Accommodation(SQLModel, table = True):
+    """
+    Database entity for the Accommodation.
+    Represents an accommodation a visitor can stay. 
+    """
+    id : uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, description="The unique identifier for the accommodation.")
+    package_id: uuid.UUID = Field(foreign_key="travelpackage.id", ondelete="CASCADE")
+    name:str = Field(max_length=200, description="The name of the accommodation")
+    type: AccommodationType = Field(default=AccommodationType.HOTEL, description="The type of the accommodation (hotel or hostel or airbnb).")
+    area: str | None = Field(default=None, max_length=100, description="The area in which the accommodation is located at.")
+    cost_per_night: float | None = Field(default=None)
+    rating: float | None = Field(default=None, description="The rating of the accommodation. Rated from 1.0 to 5.0")
+    extra_info: str | None = Field(default=None, description="Any extra information regarding the accommodation")
+
+    package: TravelPackage = Relationship(back_populates="accommodations")
+
+
 
 
 
