@@ -1,6 +1,8 @@
 from app.models import User, UserCreateDTO, UserUpdateDTO, UserUpdateSelfDTO
 from sqlmodel import Session, select
 
+# Dummy hash to use for timing attack prevention when user is not found
+DUMMY_HASH = "$argon2id$v=19$m=65536,t=3,p=4$MjQyZWE1MzBjYjJlZTI0Yw$YTU4NGM5ZTZmYjE2NzZlZjY0ZWY3ZGRkY2U2OWFjNjk"
 
 def create_user(*, session:Session, user_creation_data:UserCreateDTO) -> User:
     """
@@ -42,4 +44,27 @@ def get_user_by_email(*, session:Session, email:str) -> User | None :
     return session.exec(statement).first()
 
 
+def authenticate(*, session: Session, email:str, password:str) -> User | None:
+    """
+    Method for authenticating the user.
+    """
+    user = get_user_by_email(session, email)
+    if not user:
+        # Prevent time attack
+        verify_password(password, DUMMY_HASH)
+        return None
+    
+    verified, updated_password_hash = verify_password(password, user.hashed_password)
+    if not verified:
+        return None
+    if updated_password_hash:
+        user.hashed_password = updated_password_hash
+        session.add(user)
+        session.commit()
+        session.refresh(user)
+    return user
 
+
+    
+
+    
