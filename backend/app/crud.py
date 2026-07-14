@@ -1,5 +1,5 @@
-from app.models import User, UserCreateDTO, UserUpdateDTO
-from sqlmodel import Session
+from app.models import User, UserCreateDTO, UserUpdateDTO, UserUpdateSelfDTO
+from sqlmodel import Session, select
 
 
 def create_user(*, session:Session, user_creation_data:UserCreateDTO) -> User:
@@ -15,12 +15,13 @@ def create_user(*, session:Session, user_creation_data:UserCreateDTO) -> User:
     session.refresh(db_obj)
     return db_obj
 
-def update_user(*, session:Session, user_update_data:UserUpdateDTO, user:User):
+def update_user(*, session:Session, user_update_data:UserUpdateDTO | UserUpdateSelfDTO, user:User):
     """
     CRUD method for user update.
-    Used ONLY by the superuser.
+    Called by superusers using UserUpdateDTO as a parameter.
+    Called by regular users using UserUpdateSelfDTO as a parameter. 
     """
-    user_data = user.model_dump(exclude_unset=True)
+    user_data = user_update_data.model_dump(exclude_unset=True)
     extra_data = {}
 
     if "password" in user_data:
@@ -32,3 +33,13 @@ def update_user(*, session:Session, user_update_data:UserUpdateDTO, user:User):
     session.commit()
     session.refresh(user)
     return user
+
+def get_user_by_email(*, session:Session, email:str) -> User | None :
+    """
+    CRUD method for finding a user by their email.
+    """
+    statement = select(User).where(User.email == email)
+    return session.exec(statement).first()
+
+
+
