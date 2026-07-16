@@ -1,7 +1,7 @@
 import uuid
 
-from app.enums import SearchSessionStatus
-from app.models import SearchSession, SearchSessionCreateDTO, User, UserCreateDTO, UserUpdateDTO, UserUpdateSelfDTO
+from app.enums import ChatRole, SearchSessionStatus
+from app.models import ChatMessage, ChatMessageCreateDTO, ChatSession, ChatSessionCreateDTO, SearchSession, SearchSessionCreateDTO, User, UserCreateDTO, UserUpdateDTO, UserUpdateSelfDTO
 from sqlmodel import Session, select
 
 # Dummy hash to use for timing attack prevention when user is not found
@@ -59,7 +59,7 @@ def create_search_session(*, session:Session, owner_id:uuid.UUID, search_session
     """
     CRUD method for search session creation.
     """
-    db_obj = User.model_validate(
+    db_obj = SearchSession.model_validate(
         search_session_creation_data, update={"owner_id": owner_id}
     )
 
@@ -84,13 +84,70 @@ def update_search_session_status(*, session:Session, search_session: SearchSessi
 
 def get_search_session(*, session:Session, search_session_id:uuid.UUID) -> SearchSession :
     """
-    CRUD for finding search session using search session id.
+    CRUD method for finding search session using search session id.
     """
     return session.get(SearchSession, search_session_id)
 
+#=======================================================================================================
+# CHAT METHODS
+#=======================================================================================================
 
+def create_chat_session(*, session:Session, owner_id: uuid.UUID, chat_session_creation_data:ChatSessionCreateDTO) -> ChatSession:
+    """
+    CRUD method for chat session creation.
+    """
+    db_obj = ChatSession.model_validate(
+        chat_session_creation_data,
+        update={"owner_id":owner_id}
+    )
 
+    session.add(db_obj)
+    session.commit()
+    session.refresh(db_obj)
+
+    return db_obj
+
+def create_chat_message(*, session:Session, chat_creation_data:ChatMessageCreateDTO, role:ChatRole, chat_session_id:uuid.UUID) -> ChatMessage:
+    """
+    CRUD method for chat message creation.
+    """
+    db_obj = ChatMessage(
+        content=ChatMessageCreateDTO,
+        role=role, 
+        chat_session_id=chat_session_id
+    )
+
+    session.add(db_obj)
+    session.commit()
+    session.refresh(db_obj)
+
+    return db_obj
+
+def get_chat_sessions_by_user(*, session:Session, owner_id:uuid.UUID) -> list[ChatSession]:
+    """
+    CRUD method for finding chat sessions using the owner id.
+    """
+    statement = (
+                select(ChatSession)
+                .where(owner_id == owner_id)
+                .order_by(ChatSession.created_at)
+                )
     
+    return session.exec(statement).all()
+
+def get_chat_messages_by_session(*, session:Session, chat_session_id:uuid.UUID) -> list[ChatMessage]:
+    """
+    CRUD method for finding chat messages in a chat session.
+    """
+    statement = (
+        select(ChatMessage)
+        .where(chat_session_id = chat_session_id)
+        .order_by(ChatSession.created_at)
+    )
+
+    return session.exec(statement).all()
+
+def 
 
 
 
