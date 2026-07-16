@@ -1,7 +1,7 @@
 import uuid
 
-from app.enums import ChatRole, SearchSessionStatus
-from app.models import ChatMessage, ChatMessageCreateDTO, ChatSession, ChatSessionCreateDTO, SearchSession, SearchSessionCreateDTO, User, UserCreateDTO, UserUpdateDTO, UserUpdateSelfDTO
+from app.enums import AgentStep, ChatRole, SearchSessionStatus
+from app.models import ChatMessage, ChatMessageCreateDTO, ChatSession, ChatSessionCreateDTO, SearchHistory, SearchSession, SearchSessionCreateDTO, User, UserCreateDTO, UserUpdateDTO, UserUpdateSelfDTO
 from sqlmodel import Session, select
 
 # Dummy hash to use for timing attack prevention when user is not found
@@ -147,12 +147,31 @@ def get_chat_messages_by_session(*, session:Session, chat_session_id:uuid.UUID) 
 
     return session.exec(statement).all()
 
-def 
+#=======================================================================================================
+# SEARCH HISTORY METHOD
+#=======================================================================================================
 
+def create_search_history(*,
+                        session:Session,
+                        search_session_id:uuid.UUID,
+                        step:AgentStep,
+                        input:str,
+                        output:str,
+                        duration_ms:str) -> SearchHistory:
+    """
+    CRUD method for creating a search history.
+    """
+    db_obj = SearchHistory(search_session_id=search_session_id,
+                           step=step,
+                           input=input,
+                           output=output,
+                           duration_ms=duration_ms)
+    
+    session.add(db_obj)
+    session.commit()
+    session.refresh(db_obj)
 
-
-
-
+    return db_obj
 
 
 
