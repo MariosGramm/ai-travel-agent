@@ -280,7 +280,7 @@ class SearchHistory(SQLModel, table=True):
     step: AgentStep = Field(description="The step of the AI travel agent's process that this history record corresponds to.")
     input: str = Field(description="The input data for the corresponding step of the AI travel agent's process.")          
     output: str = Field(description="The output data for the corresponding step of the AI travel agent's process.")        
-    duration_ms: int = Field(description="The duration in milliseconds for the corresponding step of the AI travel agent's process.")
+    duration_ms: float = Field(description="The duration in milliseconds for the corresponding step of the AI travel agent's process.")
     created_at: datetime | None = Field(
         default_factory= lambda: datetime.now(UTC), 
         sa_type=DateTime(timezone=True),  # type: ignore
