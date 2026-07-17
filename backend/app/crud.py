@@ -173,14 +173,6 @@ def create_search_history(*,
 
     return db_obj
 
-
-
-
-
-
-
-
-
 def authenticate(*, session: Session, email:str, password:str) -> User | None:
     """
     Method for authenticating the user.
