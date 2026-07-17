@@ -1,5 +1,6 @@
 import uuid
 
+from app.core.security import verify_password
 from app.enums import AgentStep, ChatRole, SearchSessionStatus
 from app.models import ChatMessage, ChatMessageCreateDTO, ChatSession, ChatSessionCreateDTO, SearchHistory, SearchSession, SearchSessionCreateDTO, User, UserCreateDTO, UserUpdateDTO, UserUpdateSelfDTO
 from sqlmodel import Session, select
