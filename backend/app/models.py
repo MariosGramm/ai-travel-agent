@@ -119,7 +119,7 @@ class UsersPublicDTO(SQLModel):
 #=======================================================================================================
 
 # Chat session entity model 
-class ChatSession(SQLModel, AuditableBase, table=True):
+class ChatSession(AuditableBase, table=True):
     __tablename__ = "chat_session"
 
     """
@@ -161,7 +161,7 @@ class ChatSessionCreateDTO(SQLModel):
     )
 
 # Chat message entity model
-class ChatMessage(SQLModel, AuditableBase, table=True):
+class ChatMessage(AuditableBase, table=True):
     __tablename__ = "chat_message"
 
     """
@@ -209,7 +209,7 @@ class ChatMessageCreateDTO(SQLModel):
 #=======================================================================================================
 
 # Search session entity model
-class SearchSession(SQLModel, AuditableBase, table=True):
+class SearchSession(AuditableBase, table=True):
     __tablename__ = "search_session"
 
     """
