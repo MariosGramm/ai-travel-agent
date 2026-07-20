@@ -94,9 +94,9 @@ class User(UserBase, AuditableBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, description="The unique identifier for the user.")
     hashed_password: str = Field(max_length=255, description="The hashed password for the user account.")
 
-    chat_sessions: list["ChatSession"] = Field(Relationship(back_populates="owner"), description="A list of chat sessions associated with the user.")
-    search_sessions: list["SearchSession"] = Field(Relationship(back_populates="owner"), description="A list of search sessions associated with the user.")
-
+    chat_sessions: list["ChatSession"] = Relationship(back_populates="owner")
+    search_sessions: list["SearchSession"] = Relationship(back_populates="owner")
+    
 # Public user DTOs for API responses
 class UserPublicDTO(UserBase):
     """
@@ -129,7 +129,7 @@ class ChatSession(SQLModel, AuditableBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, description="The unique identifier for the chat session.")
     owner_id: uuid.UUID = Field(foreign_key="user.id", description="The unique identifier of the user associated with this chat session.")
     title: str | None = Field(default=None, max_length=100, description="The title of the chat session")
-    owner: "User" = Field(Relationship(back_populates="chat_sessions"), description="The user associated with this chat session.")
+    owner: "User" = Relationship(back_populates="chat_sessions")
     messages : list["ChatMessage"] = Relationship(back_populates="session")
 
 # Public chat session DTOs for API responses
@@ -226,9 +226,9 @@ class SearchSession(SQLModel, AuditableBase, table=True):
     status: SearchSessionStatus = Field(default=SearchSessionStatus.PENDING, description="The status of the search session (pending, completed, or failed).")
     error_message: str | None = Field(default=None, description="An optional error message if the search session failed.")
 
-    owner: "User" = Field(Relationship(back_populates="search_sessions"), description="The user associated with this search session.")
-    search_history: list["SearchHistory"] = Field(Relationship(back_populates="search_session"), description="A list of search history records associated with this search session.")
-    travel_packages: list["TravelPackage"] = Field(Relationship(back_populates="search_session"), description="A list of travel packages that were generated in the current search session")
+    owner: "User" = Relationship(back_populates="search_sessions")
+    search_history: list["SearchHistory"] = Relationship(back_populates="search_session")
+    travel_packages: list["TravelPackage"] = Relationship(back_populates="search_session")
 
 # Public search session DTO for API responses
 class SearchSessionPublicDTO(SQLModel):
@@ -286,7 +286,7 @@ class SearchHistory(SQLModel, table=True):
         sa_type=DateTime(timezone=True),  # type: ignore
     )
 
-    search_session: "SearchSession" = Field(Relationship(back_populates="search_history"), description="The search session associated with this history record.")
+    search_session: "SearchSession" = Relationship(back_populates="search_history")
 
 #=======================================================================================================
 # TRAVEL MODELS (Search results)
@@ -319,9 +319,9 @@ class TravelPackage(SQLModel, table=True):
         sa_type=DateTime(timezone=True),  # type: ignore
     )
 
-    search_session : SearchSession = Field(Relationship(back_populates="travel_packages"), description="The search session in which the current travel package was generated")
-    itinerary: list["Itinerary"] = Field(Relationship(back_populates="package"), description="A list of itineraries contained in the current travel package") 
-    accommodations: list["Accommodation"] = Field(Relationship(back_populates="package"), description="A list of accommodations contained in the current travel package")
+    search_session : SearchSession = Relationship(back_populates="travel_packages")
+    itinerary: list["Itinerary"] = Relationship(back_populates="package")
+    accommodations: list["Accommodation"] = Relationship(back_populates="package")
 
 # Public travel package DTO for API responses
 class TravelPackagePublicDTO(SQLModel):
