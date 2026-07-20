@@ -42,4 +42,12 @@ def get_current_user(session: SessionDep, token: TokenDep) -> User:
     if not user.is_active:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User is inactive")
     
-    
+CurrentUserDep = Annotated[User, Depends(get_current_user)]
+
+def get_current_active_superuser(current_user:CurrentUserDep) -> User:
+    if not current_user.is_superuser:
+        raise HTTPException(
+            status_code= status.HTTP_403_FORBIDDEN,
+            detail="User does not have enough privileges"
+        )
+    return current_user
