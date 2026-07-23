@@ -1,8 +1,8 @@
 from datetime import timedelta
-from typing import Annotated
+from typing import Annotated, Any
 from app import crud
-from app.models import Token
-from app.api.deps import SessionDep
+from app.models import Token, UserPublicDTO
+from app.api.deps import CurrentUserDep, SessionDep
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from app.core.config import settings
@@ -25,6 +25,12 @@ def login_access_token(session:SessionDep, form_data: Annotated[OAuth2PasswordRe
 
     return Token(user.id, expires_delta = access_token_expires)
     
+@router.post("/login/test-token", response_model= UserPublicDTO)
+def test_token(current_user: CurrentUserDep) -> Any:
+    """
+    Test access token
+    """
+    return current_user
 
-
+ 
 
